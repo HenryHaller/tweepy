@@ -85,7 +85,7 @@ class Stream(object):
         self.headers = options.get("headers") or {}
         self.parameters = None
         self.body = None
-        self.custom_read_loop = False #added to differentiate between original and modified self._read_loop()
+        #self.custom_read_loop = True #added to differentiate between original and modified self._read_loop()
 
 
     def _run(self):
@@ -117,10 +117,11 @@ class Stream(object):
                     sleep(self.retry_time)
                 else:
                     error_counter = 0
-                    if self.custom_read_loop == False:
-	                self._read_loop(resp)
-	            else:
-	                self._read_loop2(resp)
+                    self._read_loop3(resp)
+                    #if self.custom_read_loop == False:
+	            #    self._read_loop(resp)
+	            #else:
+	            #    self._read_loop3(resp)
             except timeout:
                 if self.listener.on_timeout() == False:
                     break
@@ -191,6 +192,12 @@ class Stream(object):
 
 #    def _onjson(self, jobj):
 #    	print jobj
+
+    def _read_loop3(self, resp):
+    	while self.running and not resp.isclosed():
+    		self.listener.recievechar(resp.read(amt=1))
+    	if resp.isclosed():
+    		self.onclosed(resp)
 
     def _read_loop2(self, resp):
         import ujson as json
